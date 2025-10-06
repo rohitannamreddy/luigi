@@ -1,0 +1,81 @@
+# .github/workflows/build-with-artifactory.yml
+
+name: python_build_with_artifactory
+
+on:
+  push:
+    branches:
+      - artifactory-build
+  pull_request:
+    branches:
+      - artifactory-build
+  workflow_dispatch: 
+
+env:
+  JFROG_BUILD_NAME: python-luigi-jfrog-build
+  JFROG_BUILD_NUMBER: ${{ github.run_number }}
+  JFROG_DOCKER_REGISTRY_HOST: ${{ secrets.JFROG_DOCKER_REGISTRY_HOST }}
+  JFROG_DOCKER_REPO_KEY: ${{ secrets.DOCKER_REPO_KEY }}
+  DOCKER_IMAGE_NAME: python-luigi-jfrog-app
+
+jobs:
+  build_package_publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      #- name: Set up /etc/hosts for Artifactory
+      #  run: echo "34.197.47.119 artifactory.rohita.com" | sudo tee -a /etc/hosts
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          
+      - name: Set up JFrog CLI
+        uses: jfrog/setup-jfrog-cli@v4
+        with:
+          version: 'latest'
+        env:
+          JF_URL: ${{ env.JFROG_PLATFORM_URL }}
+          JF_USER: ${{ secrets.JFROG_USERNAME }}
+          JF_PASSWORD: ${{ secrets.JFROG_PASSWORD }}
+          #JF_GIT_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Configure Python with JFrog
+        run: |
+          jf pypi-config --repo-resolve=pypi-remote --repo-deploy=poc-pypi-local
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          jf pip install -e . --build-name=$JFROG_BUILD_NAME --build-number=$JFROG_BUILD_NUMBER
+          
+      - name: Build Python package
+        run: |
+          python -m pip install build wheel setuptools
+          python -m build
+          
+      - name: Build Docker Image
+        run: |
+          # Build the Docker image, using the current commit SHA as a unique tag
+          IMAGE_TAG=${{ env.JFROG_DOCKER_REGISTRY_HOST }}/${{ env.JFROG_DOCKER_REPO_KEY }}/${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}
+          docker build -t $IMAGE_TAG .
+          echo "Built Docker Image: $IMAGE_TAG"
+
+      - name: Push Docker Image and Collect Info
+        run: |
+          IMAGE_TAG=${{ env.JFROG_DOCKER_REGISTRY_HOST }}/${{ env.JFROG_DOCKER_REPO_KEY }}/${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}
+          jf docker push $IMAGE_TAG --repo=${{ env.JFROG_DOCKER_REPO_KEY }}
+          jf rt build-collect-env $JFROG_BUILD_NAME $JFROG_BUILD_NUMBER
+          
+      - name: Publish build info to Artifactory
+        run: |
+          jf rt build-publish $JFROG_BUILD_NAME $JFROG_BUILD_NUMBER
+      
+      - name: Xray Build Scan and Policy Enforcement
+        run: |
+          jf build-scan $BUILD_NAME $JFROG_BUILD_NUMBER --format=table --fail=true
+          
