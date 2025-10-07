@@ -49,7 +49,7 @@ jobs:
       
       - name: Configure Python with JFrog
         run: |
-          jf pypi-config --repo-resolve=rohit-pypi-remote --repo-deploy=rohit-pypi-local
+          jf pip-config --repo-resolve=rohit-pypi-remote --repo-deploy=rohit-pypi-local
           
       - name: Install dependencies
         run: |
