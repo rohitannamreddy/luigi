@@ -12,10 +12,13 @@ on:
   workflow_dispatch: 
 
 env:
+  JFROG_URL: ${{ vars.JF_URL }}
+  JFROG_USER: ${{ vars.JF_USER }}
+  JFROG_PASSWORD: ${{ secrets.JF_PASSWORD }}
   JFROG_BUILD_NAME: python-luigi-jfrog-build
   JFROG_BUILD_NUMBER: ${{ github.run_number }}
-  JFROG_DOCKER_REGISTRY_HOST: ${{ secrets.JFROG_DOCKER_REGISTRY_HOST }}
-  JFROG_DOCKER_REPO_KEY: ${{ secrets.DOCKER_REPO_KEY }}
+  JFROG_DOCKER_REGISTRY_HOST: ${{ vars.JFROG_DOCKER_REGISTRY_HOST }}
+  JFROG_DOCKER_REPO_KEY: ${{ vars.DOCKER_REPO_KEY }}
   DOCKER_IMAGE_NAME: python-luigi-jfrog-app
 
 jobs:
@@ -39,8 +42,8 @@ jobs:
         with:
           version: 'latest'
         env:
-          JF_URL: ${{ env.JFROG_PLATFORM_URL }}
-          JF_USER: ${{ secrets.JFROG_USERNAME }}
+          JF_URL: ${{ vars.JFROG_PLATFORM_URL }}
+          JF_USER: ${{ vars.JFROG_USERNAME }}
           JF_PASSWORD: ${{ secrets.JFROG_PASSWORD }}
           #JF_GIT_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
