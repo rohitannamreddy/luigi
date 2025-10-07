@@ -15,6 +15,7 @@ env:
   JFROG_URL: ${{ vars.JF_URL }}
   JFROG_USER: ${{ vars.JF_USER }}
   JFROG_PASSWORD: ${{ secrets.JF_PASSWORD }}
+  JFROG_GIT_TOKEN: ${{ secrets.JF_GIT_TOKEN }}
   JFROG_BUILD_NAME: python-luigi-jfrog-build
   JFROG_BUILD_NUMBER: ${{ github.run_number }}
   JFROG_DOCKER_REGISTRY_HOST: ${{ vars.JFROG_DOCKER_REGISTRY_HOST }}
@@ -45,8 +46,12 @@ jobs:
           JF_URL: ${{ vars.JFROG_PLATFORM_URL }}
           JF_USER: ${{ vars.JFROG_USERNAME }}
           JF_PASSWORD: ${{ secrets.JFROG_PASSWORD }}
-          #JF_GIT_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
+          JF_GIT_TOKEN: ${{ secrets.JF_GIT_TOKEN }}
+
+      - name: Configure Artifactory Server
+        run: |
+          jf c add artifactory-server --url=$JFROG_URL --access-token=$JFROG_GIT_TOKEN
+          
       - name: Configure Python with JFrog
         run: |
           jf pip-config --repo-resolve=rohit-pypi-remote --repo-deploy=rohit-pypi-local
