@@ -48,16 +48,18 @@ jobs:
           JF_PASSWORD: ${{ secrets.JFROG_PASSWORD }}
           JF_GIT_TOKEN: ${{ secrets.JF_GIT_TOKEN }}
 
-      - name: Configure Artifactory Server
+      - name: Configure Artifactory
         run: |
           jf c add artifactory-server --url=$JFROG_URL --access-token=$JFROG_GIT_TOKEN
           
-      - name: Configure Python with JFrog
+      - name: Configure Python
         run: |
           jf pip-config --repo-resolve=rohit-pypi-remote --repo-deploy=rohit-pypi-local
           
       - name: Install dependencies
         run: |
+          jf c add
+          jf c show
           python -m pip install --upgrade pip
           jf pip install -e . --build-name=$JFROG_BUILD_NAME --build-number=$JFROG_BUILD_NUMBER
           
