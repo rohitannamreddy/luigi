@@ -76,8 +76,6 @@ jobs:
 
       - name: Collect and Publish Info
         run: |
-      #   IMAGE_TAG=${{ env.JFROG_DOCKER_REGISTRY_HOST }}/${{ env.JFROG_DOCKER_REPO_KEY }}/${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}
-      #   jf docker push $IMAGE_TAG --repo=${{ env.JFROG_DOCKER_REPO_KEY }}
           jf rt build-collect-env $JFROG_BUILD_NAME $JFROG_BUILD_NUMBER
           jf rt build-publish $JFROG_BUILD_NAME $JFROG_BUILD_NUMBER
       
