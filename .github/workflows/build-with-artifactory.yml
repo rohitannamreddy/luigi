@@ -81,5 +81,5 @@ jobs:
       
       - name: Xray Build Scan and Policy Enforcement
         run: |
-          jf build-scan $BUILD_NAME $JFROG_BUILD_NUMBER --format=table --fail=true
+          jf build-scan $JFROG_BUILD_NAME $JFROG_BUILD_NUMBER --format=table --fail=true
           
